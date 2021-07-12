@@ -1,0 +1,141 @@
+# Book table
+booksTable:
+  Type: "AWS::DynamoDB::Table"
+  Properties: 
+    AttributeDefinitions: 
+      - AttributeName: "bookId"
+        AttributeType: "S"
+    BillingMode: "PAY_PER_REQUEST"
+    KeySchema: 
+      - AttributeName: "bookId"
+        KeyType: "HASH"
+    Tags: 
+      - Key: "Name"
+        Value: "books-table"
+
+# Order table
+orderTable:
+  Type: "AWS::DynamoDB::Table"
+  Properties: 
+    AttributeDefinitions: 
+      - AttributeName: "userId"
+        AttributeType: "S"
+      - AttributeName: "orderId"
+        AttributeType: "S"
+      - AttributeName: "bookId"
+        AttributeType: "S"
+      - AttributeName: "createdAt"
+        AttributeType: "S"
+    BillingMode: "PAY_PER_REQUEST"
+    KeySchema: 
+      - AttributeName: "userId"
+        KeyType: "HASH"
+      - AttributeName: "orderId"
+        KeyType: "RANGE"
+    GlobalSecondaryIndexes: 
+      - IndexName: "byOrder"
+        KeySchema: 
+        - AttributeName: "bookId"
+          KeyType: "HASH"
+        - AttributeName: "createdAt"
+          KeyType: "RANGE"
+        Projection: 
+          ProjectionType: "ALL"
+    Tags: 
+      - Key: "Name"
+        Value: "order-table"
+
+# Cognito user pool
+cognitoUserPool:
+  Type: "AWS::Cognito::UserPool"
+  Properties: 
+    UsernameAttributes: 
+      - "email"
+    UserPoolName: "YouTubeBookstoreUserpool"
+
+# Cognito user pool client
+cognitoUserPoolClient:
+  Type: "AWS::Cognito::UserPoolClient"
+  Properties: 
+    ClientName: "web"
+    UserPoolId: !Ref cognitoUserPool
+
+# Cognito user pool user group
+cognitoCustomerGroup:
+  Type: "AWS::Cognito::UserPoolGroup"
+  Properties: 
+    Description: "Customers belong to this group"
+    GroupName: "customer"
+    Precedence: 1
+    RoleArn: !GetAtt cognitoCustomerIAMRole.Arn
+    UserPoolId: !Ref cognitoUserPool
+
+# Congnito admin IAM role
+cognitoCustomerIAMRole:
+  Type: "AWS::IAM::Role"
+  Properties: 
+    RoleName: "youtube-bookstore-customer-role"
+    Description: "IAM role for customers"
+    AssumeRolePolicyDocument: 
+      Version: "2012-10-17"
+      Statement: 
+      - Effect: "Allow"
+        Principal: 
+          Federated:
+            - "cognito-identity.amazonaws.com"
+        Action: 
+          - "sts:AssumeRoleWithWebIdentity" 
+    Policies: 
+      - PolicyName: "youtube-bookstore-customer-group-policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "dynamodb:*"
+              Resource:
+                - !GetAtt orderTable.Arn
+            - Effect: "Allow"
+              Action:
+                - "dynamodb:GetItem"
+                - "dynamodb:BatchGetItem"
+                - "dynamodb:Query"
+              Resource:
+                - !GetAtt booksTable.Arn
+
+# Cognito user pool admin group
+cognitoAdminGroup:
+  Type: "AWS::Cognito::UserPoolGroup"
+  Properties: 
+    Description: "Admin users belong to this group"
+    GroupName: "admin"
+    Precedence: 0
+    RoleArn: !GetAtt cognitoAdminIAMRole.Arn
+    UserPoolId: !Ref cognitoUserPool
+
+# Congnito admin IAM role
+cognitoAdminIAMRole:
+  Type: "AWS::IAM::Role"
+  Properties: 
+    RoleName: "youtube-bookstore-admin-role"
+    Description: "IAM role for admin users"
+    AssumeRolePolicyDocument: 
+      Version: "2012-10-17"
+      Statement: 
+      - Effect: "Allow"
+        Principal: 
+          Federated:
+            - "cognito-identity.amazonaws.com"
+        Action: 
+          - "sts:AssumeRoleWithWebIdentity" 
+    Policies: 
+      - PolicyName: "youtube-bookstore-admin-group-policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "dynamodb:*"
+              Resource:
+                - !GetAtt booksTable.Arn
+                - !GetAtt orderTable.Arn
