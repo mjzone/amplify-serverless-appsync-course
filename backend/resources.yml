@@ -139,3 +139,45 @@ cognitoAdminIAMRole:
               Resource:
                 - !GetAtt booksTable.Arn
                 - !GetAtt orderTable.Arn
+
+# Congnito admin IAM role
+cognitoUnauthIAMRole:
+  Type: "AWS::IAM::Role"
+  Properties: 
+    RoleName: "youtube-bookstore-unauth-role"
+    Description: "IAM role for guest users"
+    AssumeRolePolicyDocument: 
+      Version: "2012-10-17"
+      Statement: 
+      - Effect: "Allow"
+        Principal: 
+          Federated:
+            - "cognito-identity.amazonaws.com"
+        Action: 
+          - "sts:AssumeRoleWithWebIdentity" 
+    Policies: 
+      - PolicyName: "youtube-bookstore-unauth-user-policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "appsync:GraphQL"
+              Resource:
+                - "arn:aws:appsync:us-west-1:885121665536:apis/4est5xj75fgfhkwrqfujp35rgq/types/Query/fields/getBookById"
+
+cognitoIdentityPoolRoleAttachment:
+  Type: AWS::Cognito::IdentityPoolRoleAttachment
+  Properties: 
+    IdentityPoolId: !Ref cognitoIdentityPool
+    Roles: 
+      unauthenticated: !GetAtt cognitoUnauthIAMRole.Arn
+                
+cognitoIdentityPool:
+  Type: AWS::Cognito::IdentityPool
+  Properties: 
+    AllowUnauthenticatedIdentities: true
+    CognitoIdentityProviders: 
+      - ClientId: !Ref cognitoUserPoolClient
+        ProviderName: !GetAtt cognitoUserPool.ProviderName
+    IdentityPoolName: YoutubeBookStoreIdentityPool

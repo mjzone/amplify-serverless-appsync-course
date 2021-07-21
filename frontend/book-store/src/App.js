@@ -10,7 +10,14 @@ function App() {
 
   const getBook = async () => {
     // make a call to appsync api
-    const book = await API.graphql(graphqlOperation(getBookById, { id: "97d97d2d-87b6-4e81-97da-8a63a1f8ae9f" }));
+    // const book = await API.graphql(graphqlOperation(getBookById, { id: "97d97d2d-87b6-4e81-97da-8a63a1f8ae9f" }));
+
+    const book = await API.graphql({
+      query: getBookById,
+      variables: { id: "97d97d2d-87b6-4e81-97da-8a63a1f8ae9f" },
+      authMode: 'AWS_IAM'
+    });
+
     setBook(book.data.getBookById);
   }
 
@@ -27,7 +34,7 @@ function App() {
 
   return (
     <div>
-      <AmplifySignOut />
+      {/* <AmplifySignOut /> */}
       <section className="book-section">
         <button onClick={() => getBook()}>Get book details</button>
         <hr />
@@ -37,4 +44,4 @@ function App() {
   );
 }
 
-export default withAuthenticator(App);
+export default App;

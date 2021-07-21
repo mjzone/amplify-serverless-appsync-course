@@ -13,6 +13,8 @@ custom:
   appSync:
     name: youtubeAppSyncApi
     authenticationType: AMAZON_COGNITO_USER_POOLS
+    additionalAuthenticationProviders:
+      - authenticationType: AWS_IAM
     userPoolConfig:
       awsRegion: us-west-1
       defaultAction: ALLOW
