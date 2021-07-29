@@ -24,6 +24,9 @@ custom:
       - type: Query 
         field: getBookById
         dataSource: booksTable
+      - type: Query 
+        field: listBooks
+        dataSource: booksTable
       - type: Mutation 
         field: createBook
         dataSource: booksTable
