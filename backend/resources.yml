@@ -1,23 +1,23 @@
 # Book table
 booksTable:
   Type: "AWS::DynamoDB::Table"
-  Properties: 
-    AttributeDefinitions: 
+  Properties:
+    AttributeDefinitions:
       - AttributeName: "bookId"
         AttributeType: "S"
     BillingMode: "PAY_PER_REQUEST"
-    KeySchema: 
+    KeySchema:
       - AttributeName: "bookId"
         KeyType: "HASH"
-    Tags: 
+    Tags:
       - Key: "Name"
         Value: "books-table"
 
 # Order table
 orderTable:
   Type: "AWS::DynamoDB::Table"
-  Properties: 
-    AttributeDefinitions: 
+  Properties:
+    AttributeDefinitions:
       - AttributeName: "userId"
         AttributeType: "S"
       - AttributeName: "orderId"
@@ -27,43 +27,43 @@ orderTable:
       - AttributeName: "createdAt"
         AttributeType: "S"
     BillingMode: "PAY_PER_REQUEST"
-    KeySchema: 
+    KeySchema:
       - AttributeName: "userId"
         KeyType: "HASH"
       - AttributeName: "orderId"
         KeyType: "RANGE"
-    GlobalSecondaryIndexes: 
+    GlobalSecondaryIndexes:
       - IndexName: "byOrder"
-        KeySchema: 
-        - AttributeName: "bookId"
-          KeyType: "HASH"
-        - AttributeName: "createdAt"
-          KeyType: "RANGE"
-        Projection: 
+        KeySchema:
+          - AttributeName: "bookId"
+            KeyType: "HASH"
+          - AttributeName: "createdAt"
+            KeyType: "RANGE"
+        Projection:
           ProjectionType: "ALL"
-    Tags: 
+    Tags:
       - Key: "Name"
         Value: "order-table"
 
 # Cognito user pool
 cognitoUserPool:
   Type: "AWS::Cognito::UserPool"
-  Properties: 
-    UsernameAttributes: 
+  Properties:
+    UsernameAttributes:
       - "email"
     UserPoolName: "YouTubeBookstoreUserpool"
 
 # Cognito user pool client
 cognitoUserPoolClient:
   Type: "AWS::Cognito::UserPoolClient"
-  Properties: 
+  Properties:
     ClientName: "web"
     UserPoolId: !Ref cognitoUserPool
 
 # Cognito user pool user group
 cognitoCustomerGroup:
   Type: "AWS::Cognito::UserPoolGroup"
-  Properties: 
+  Properties:
     Description: "Customers belong to this group"
     GroupName: "customer"
     Precedence: 1
@@ -73,19 +73,19 @@ cognitoCustomerGroup:
 # Congnito admin IAM role
 cognitoCustomerIAMRole:
   Type: "AWS::IAM::Role"
-  Properties: 
+  Properties:
     RoleName: "youtube-bookstore-customer-role"
     Description: "IAM role for customers"
-    AssumeRolePolicyDocument: 
+    AssumeRolePolicyDocument:
       Version: "2012-10-17"
-      Statement: 
-      - Effect: "Allow"
-        Principal: 
-          Federated:
-            - "cognito-identity.amazonaws.com"
-        Action: 
-          - "sts:AssumeRoleWithWebIdentity" 
-    Policies: 
+      Statement:
+        - Effect: "Allow"
+          Principal:
+            Federated:
+              - "cognito-identity.amazonaws.com"
+          Action:
+            - "sts:AssumeRoleWithWebIdentity"
+    Policies:
       - PolicyName: "youtube-bookstore-customer-group-policy"
         PolicyDocument:
           Version: "2012-10-17"
@@ -106,7 +106,7 @@ cognitoCustomerIAMRole:
 # Cognito user pool admin group
 cognitoAdminGroup:
   Type: "AWS::Cognito::UserPoolGroup"
-  Properties: 
+  Properties:
     Description: "Admin users belong to this group"
     GroupName: "admin"
     Precedence: 0
@@ -116,19 +116,19 @@ cognitoAdminGroup:
 # Congnito admin IAM role
 cognitoAdminIAMRole:
   Type: "AWS::IAM::Role"
-  Properties: 
+  Properties:
     RoleName: "youtube-bookstore-admin-role"
     Description: "IAM role for admin users"
-    AssumeRolePolicyDocument: 
+    AssumeRolePolicyDocument:
       Version: "2012-10-17"
-      Statement: 
-      - Effect: "Allow"
-        Principal: 
-          Federated:
-            - "cognito-identity.amazonaws.com"
-        Action: 
-          - "sts:AssumeRoleWithWebIdentity" 
-    Policies: 
+      Statement:
+        - Effect: "Allow"
+          Principal:
+            Federated:
+              - "cognito-identity.amazonaws.com"
+          Action:
+            - "sts:AssumeRoleWithWebIdentity"
+    Policies:
       - PolicyName: "youtube-bookstore-admin-group-policy"
         PolicyDocument:
           Version: "2012-10-17"
@@ -143,19 +143,19 @@ cognitoAdminIAMRole:
 # Congnito admin IAM role
 cognitoUnauthIAMRole:
   Type: "AWS::IAM::Role"
-  Properties: 
+  Properties:
     RoleName: "youtube-bookstore-unauth-role"
     Description: "IAM role for guest users"
-    AssumeRolePolicyDocument: 
+    AssumeRolePolicyDocument:
       Version: "2012-10-17"
-      Statement: 
-      - Effect: "Allow"
-        Principal: 
-          Federated:
-            - "cognito-identity.amazonaws.com"
-        Action: 
-          - "sts:AssumeRoleWithWebIdentity" 
-    Policies: 
+      Statement:
+        - Effect: "Allow"
+          Principal:
+            Federated:
+              - "cognito-identity.amazonaws.com"
+          Action:
+            - "sts:AssumeRoleWithWebIdentity"
+    Policies:
       - PolicyName: "youtube-bookstore-unauth-user-policy"
         PolicyDocument:
           Version: "2012-10-17"
@@ -163,21 +163,22 @@ cognitoUnauthIAMRole:
             - Effect: "Allow"
               Action:
                 - "appsync:GraphQL"
-              Resource:
-                - "arn:aws:appsync:us-west-1:885121665536:apis/4est5xj75fgfhkwrqfujp35rgq/types/Query/fields/getBookById"
+              Resource: "*"
+              # Resource:
+              #   - "arn:aws:appsync:us-west-1:885121665536:apis/4est5xj75fgfhkwrqfujp35rgq/types/Query/fields/getBookById"
 
 cognitoIdentityPoolRoleAttachment:
   Type: AWS::Cognito::IdentityPoolRoleAttachment
-  Properties: 
+  Properties:
     IdentityPoolId: !Ref cognitoIdentityPool
-    Roles: 
+    Roles:
       unauthenticated: !GetAtt cognitoUnauthIAMRole.Arn
-                
+
 cognitoIdentityPool:
   Type: AWS::Cognito::IdentityPool
-  Properties: 
+  Properties:
     AllowUnauthenticatedIdentities: true
-    CognitoIdentityProviders: 
+    CognitoIdentityProviders:
       - ClientId: !Ref cognitoUserPoolClient
         ProviderName: !GetAtt cognitoUserPool.ProviderName
     IdentityPoolName: YoutubeBookStoreIdentityPool

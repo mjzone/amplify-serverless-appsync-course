@@ -1,60 +1,65 @@
 schema {
-    query: Query,
-    mutation: Mutation
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
-    getBookById(bookId: ID!): Book! @aws_iam
-    listBooks(limit: Int!, nextToken: String): BooksPage!
-    myOrders(limit: Int!, nextToken: String): orderItemsPage!
+  getBookById(bookId: ID!): Book! @aws_iam @aws_cognito_user_pools
+  listBooks(limit: Int!, nextToken: String): BooksPage!
+  myOrders(limit: Int!, nextToken: String): orderItemsPage!
 }
 
 type orderItemsPage {
-    orderItems: [OrderItem]
-    nextToken: String
+  orderItems: [OrderItem]
+  nextToken: String
 }
 
 type OrderItem {
-    userId: ID!
-    orderId: ID!
-    book: Book!
-    quantity: Int! 
+  userId: ID!
+  orderId: ID!
+  book: Book!
+  quantity: Int!
 }
 
 type BooksPage {
-    books: [Book]
-    nextToken: String
+  books: [Book]
+  nextToken: String
 }
 
-type Book @aws_iam @aws_cognito_user_pools	{
-    bookId: ID! 
-    title: String!
-    description: String
-    imageUrl: AWSURL
-    author: String!
-    price: Float!
-    createdAt: AWSDateTime
-    updatedAt: AWSDateTime
+type Book @aws_iam @aws_cognito_user_pools {
+  bookId: ID!
+  title: String!
+  description: String
+  imageUrl: AWSURL
+  author: String!
+  price: Float!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
 }
 
 type Mutation {
-    createBook(newBook: BookInput): Book! @aws_auth(cognito_groups: ["admin"])
-    createOrder(newOrder: OrderInput): Boolean!
+  createBook(newBook: BookInput): Book! @aws_auth(cognito_groups: ["admin"])
+  createOrder(newOrder: OrderInput): Boolean!
 }
 
 input OrderInput {
-    items: [orderItemInput]
+  items: [orderItemInput]
 }
 
 input orderItemInput {
-    bookId: ID!
-    quantity: Int!
+  bookId: ID!
+  quantity: Int!
 }
 
 input BookInput {
-    title: String!
-    description: String
-    imageUrl: AWSURL
-    author: String!
-    price: Float!
+  title: String!
+  description: String
+  imageUrl: AWSURL
+  author: String!
+  price: Float!
+}
+
+type Subscription {
+  onCreateBook: Book @aws_subscribe(mutations: ["createBook"])
 }

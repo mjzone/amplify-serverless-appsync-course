@@ -1,40 +1,55 @@
-import React, { useState } from "react";
-import { API, graphqlOperation } from 'aws-amplify';
-import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
+import React, { useState, useEffect } from "react";
+import { API, graphqlOperation } from "aws-amplify";
+import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import { getBookById } from "./graphql/queries/book";
-import './App.css';
+import { onCreateTodo } from "./graphql/subscriptions/book";
+import "./App.css";
 
 function App() {
-
   const [book, setBook] = useState(null);
+
+  useEffect(() => {
+    const subscription = API.graphql(graphqlOperation(onCreateTodo)).subscribe({
+      next: (result) => {
+        console.log(result);
+        const newBook = result.value.data.onCreateBook;
+        setBook(newBook);
+        // Do something with the data
+      }
+    });
+  }, []);
 
   const getBook = async () => {
     // make a call to appsync api
-    // const book = await API.graphql(graphqlOperation(getBookById, { id: "97d97d2d-87b6-4e81-97da-8a63a1f8ae9f" }));
+    const book = await API.graphql(
+      graphqlOperation(getBookById, { id: "0d7385d5-a9c9-4571-a406-c003fac26193" })
+    );
 
-    const book = await API.graphql({
-      query: getBookById,
-      variables: { id: "97d97d2d-87b6-4e81-97da-8a63a1f8ae9f" },
-      authMode: 'AWS_IAM'
-    });
+    // const book = await API.graphql({
+    //   query: getBookById,
+    //   variables: { id: "0d7385d5-a9c9-4571-a406-c003fac26193" },
+    //   authMode: "AWS_IAM"
+    // });
 
     setBook(book.data.getBookById);
-  }
+  };
 
   const viewBook = () => {
     if (book) {
-      return (<article>
-        <h3>{book.title}</h3>
-        <p>{book.description}</p>
-        <p>{book.author}</p>
-        <h4>{book.price}</h4>
-      </article>)
+      return (
+        <article>
+          <h3>{book.title}</h3>
+          <p>{book.description}</p>
+          <p>{book.author}</p>
+          <h4>{book.price}</h4>
+        </article>
+      );
     }
-  }
+  };
 
   return (
     <div>
-      {/* <AmplifySignOut /> */}
+      <AmplifySignOut />
       <section className="book-section">
         <button onClick={() => getBook()}>Get book details</button>
         <hr />
@@ -44,4 +59,4 @@ function App() {
   );
 }
 
-export default App;
+export default withAuthenticator(App);
