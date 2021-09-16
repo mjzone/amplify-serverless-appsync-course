@@ -3,7 +3,11 @@ import { API, graphqlOperation } from "aws-amplify";
 import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import { getBookById } from "./graphql/queries/book";
 import { onCreateTodo } from "./graphql/subscriptions/book";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+
+toast.configure();
 
 function App() {
   const [book, setBook] = useState(null);
@@ -14,6 +18,7 @@ function App() {
         console.log(result);
         const newBook = result.value.data.onCreateBook;
         setBook(newBook);
+        toast("New book added!");
         // Do something with the data
       }
     });
